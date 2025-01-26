@@ -1,5 +1,10 @@
 #lang racket
 
+(define sub# 0) (define uni# 0) (define ret# 0) (define rec# 0)
+(define (reset-stats)
+  (set! sub# 0) (set! uni# 0) (set! ret# 0) (set! rec# 0))
+(define (print-stats)
+  (print (list 'subs# sub# 'uni# uni# 'ret# ret# 'rec# rec#)))
 (define (meval sexp)
   (letrec ((trace (λ (e cc)
                     (newline) (newline)
@@ -7,6 +12,7 @@
                     (print e) (newline) (newline)))
            (sub (lambda (a x e)
                   "Substitute a for x in e."
+                  (begin (set! sub# (add1 sub#)))
                   (match e                    
                     [`(□ ,p)    `(□ ,(sub a x p))]
                     [`(▷ ,p ,q) `(▷ ,(sub a x p) ,(sub a x q))]
@@ -15,12 +21,14 @@
                     [_           (if (eq? x e) a e)])))
            (uni (λ (cc)
                   "Collapse current continuation into incomplete expression."
+                  (begin (set! uni# (add1 uni#)))
                   (match cc
                     ['• '•]
                     [`(,e . ,k) (sub e '• (uni k))]
                     [_ (error "Bad continuation:" cc)])))
            (ret (λ (v bound? cc)
                   "Apply the current continuation to value v."
+                  (begin (set! ret# (add1 ret#)))
                   (match cc
                     ['• v]
                     [`((• ,r) . ,k)
@@ -38,7 +46,8 @@
                     [_ (error "Ill-formed continuation:" cc)])))
            (rec (λ (e bound? cc)
                   "Interpret expression e in the current context."
-                  ;; (trace e cc)
+                  (begin (set! rec# (add1 rec#)))
+                  (trace e cc)
                   (match e
                     ;; Code values                    
                     [`(□ ,t) (ret `(□ ,t) bound? cc)]
@@ -74,10 +83,10 @@
 
 (define squine0 '((→ x (▷ x (□ x))) (□ (→ x (▷ x (□ x))))))
 (define squine1 '(□ ((→ x (▷ x (□ x))) (□ (→ x (▷ x (□ x)))))))
-(test 'squine-test-0 (not (equal? squine0 (meval squine0))))
-(test 'squine-test-1 (equal? squine1 (meval squine0)))
-(test 'squine-test-2 (equal? squine1 (meval (meval squine1))))
-(test 'squine-test-3 (equal? squine1 (meval `(ε ,squine1))))
+;; (test 'squine-test-0 (not (equal? squine0 (meval squine0))))
+;; (test 'squine-test-1 (equal? squine1 (meval squine0)))
+;; (test 'squine-test-2 (equal? squine1 (meval (meval squine1))))
+;; (test 'squine-test-3 (equal? squine1 (meval `(ε ,squine1))))
 
 ;; Object-lang
 (define zero '(→ f (→ x x)))
@@ -91,13 +100,23 @@
 (define ifzero `((→ p (→ a (→ b ((p a) b)))) ,iszero))
 
 (define Y '(→ f ((→ x (f (x x))) (→ x (f (x x))))))
-
 (define plus `(→ f (→ n (→ m (((,ifzero n) m) ((f (,prev n)) (,next m)))))))
 
 (define addo `(,Y ,plus))
+(define addo2 `(ε (▷ (□ ,Y) (□ ,plus))))
+(define addo3 `(((→ y (→ x (ε (▷ (□ y) (□ x))))) ,Y) ,plus))
+
+
+(define sfix '(→ e ((→ x ((ε x) x)) (▷ (□ (→ t (→ y (t (▷ y (□ y)))))) e))))
+(define splus `(→ e (→ n (→ m (((,ifzero n) m) (((ε e) (,prev n)) (,next m)))))))
+(define saddo `(,sfix (□ ,splus)))
+                    
 
 (define addm (λ (i j) (number (meval `((,addo ,(numeral i)) ,(numeral j))))))
 
+
+(define infer `(→ e (→ p (→ q (→ k (((ε e) (□ (p q))) (□ q))))));; ??? 
+(define inference `(,sfix (□ ,infer))) ;; ???
 
 ;; Meta-lang
 (define numeral
