@@ -57,6 +57,7 @@
                      (let [(y (if (bound? x) (gensym) x))]
                        (ret `(λ (,y) ,(if (bound? x) (sub y x b) b)) bound? cc))]
                     [`(,l ,r) (rec l bound? `((• ,r) . ,cc))]
+                    [`,s (ret `(□ ,s) bound? cc)] ;; ???
                     [_ (error "Ill-formed: " e)]))))
     (rec sexp (λ (_) #f) '•)))
 
@@ -67,33 +68,22 @@
 ;; (λ (x) (λ (y) (→ (□ x) (□ y)))) :: □(A -> B) -> (□A -> □B) =: axiom K
                     
 
-(define a '(λ (x) (λ (y) (combine x y))))
-(define b '(λ (x) (mention x)))
+(define a '(λ (x) (λ (y) (□ (x y)))))
+(define b '(λ (x) (□ x)))
 
 (define sd '(λ (x) ((meval x) x)))
 (define qf `(lambda (t) (λ (y) (t ((,a y) (,b y))))))
-;(define sfix `(λ (e) (,sd ((,a (,qf)) e))))
+;(define sfix `(λ (e) (,sd ((,a (□ ,qf)) e))))
+;; (define sfix `(λ (e) ((λ (x) ((meval x) x))
+;;                       (□ ((λ (t) (λ (y) (t (meval (□ (y (□ y))))))) e)))))
 
-
-(define squine0
+(define quine
   ((λ (x) (list x (list 'quote x))) '(λ (x) (list x (list 'quote x)))))
 
 ;; (□ ((□ A -> Z) -> Z)) -> (□ ((□ A -> Z) -> Z))
-(define squine1 '((λ (x) (→ x (□ x))) (□ (λ (y) (→ y (□ y))))))
-(test 'squine1-test1 (not (equal? squine1 (meval squine1))))
-(test 'squine1-test2 (equal? (meval squine1) (meval (meval squine1))))
+(define squine '(□ ((λ (x) (→ x (□ x))) (□ (λ (x) (→ x (□ x)))))))
+(test 'squine-test (equal? squine (meval `(meval ,squine))))
 
-;; ⦻⨂⦾⦿ ⊤ ⊥ △ ▽
-(define squine2 '(□ ((λ (x) (→ x (□ x))) (□ (λ (y) (→ y (□ y)))))))
-(test 'squine2-test (equal? squine2 (meval squine2)))
-
-(define squine3 '(□ (□ ((λ (x) (→ x (x))) ((λ (y) (y (y))))))))
-(test 'squine3-test (equal? squine3 (meval squine3)))
-
-
-(define quine-cbn
-  '((λ (y) (combine y (mention y))) (mention (λ (y) (combine y (mention y))))))
-  
 ;; (define sfix
 ;;   '(λ (e)
 ;;      ((λ (x) ((meval x) x))
@@ -101,9 +91,6 @@
 ;;         (combine '(λ (t) (λ (y) (t (combine y (mention y)))))))
 ;;        e))))
        
-       
-
-
 ;; (define sfix ; a splices quoted forms, b quotes
 ;;   '(λ (a)
 ;;      (λ (b)
@@ -160,15 +147,16 @@
 ;; => x :: (((C -> A) -> A) -> A)
 ;; show-stopper: x :: C := (C -> A)
 ;; i.e. self-denotative definition of generic (monadic) "computation" type
-(define Y
-  '(λ (f) ((λ (x) (f (x x))) (λ (x) (f (x x))))))
+(define Y '(λ (f) ((λ (x) (f (x x))) (λ (x) (f (x x))))))
 
+;; (define sfix
+;;   `(λ (e) ((λ (x) ((meval x) x))
+;;            (□ ((λ (t) (λ (y) (t (meval (□ (y (□ y))))))) e)))))
+
+(define sfix '(λ ()))
 ;; Generalization (Y as degenerate case)
 ;; [`(sfix ,q) (comp `(,(comp ,q) '(sfix ,q)))]
 
-
-(define addo
-  `(,Y (λ (f) (λ (n) (λ (m) (((,ifzero n) m) ((f (,prev n)) (,next m))))))))
 
 ;; Meta-lang
 (define numeral
@@ -182,16 +170,19 @@
 
 
 
-(define sfix
-  '(λ (e) ((λ (x) ((meval x) x))
-           (((λ (x) (λ (y) ((x) (y))))
-             ((λ (t) (λ (y) (t (((λ (w) (λ (v) ((w) (v)))) y) ((λ (l) (l)) y)))))))
-            e))))
+;; (define sfix
+;;   '(λ (e) ((λ (x) ((meval x) x))
+;;            (((λ (x) (λ (y) ((x) (y))))
+;;              ((λ (t) (λ (y) (t (((λ (w) (λ (v) ((w) (v)))) y) ((λ (l) (l)) y)))))))
+;;             e))))
 
 ;; staged adder
+(define addo
+  `(,Y (λ (f) (λ (n) (λ (m) (((,ifzero n) m) ((f (,prev n)) (,next m))))))))
+
 (define sadd
   `(,sfix
-    '(λ (s) (λ (n) (((,ifzero n) (,next ,zero)) (,next ((meval s) (,prev n))))))))
+    (□ (λ (s) (λ (n) (((,ifzero n) (,next ,zero)) (,next ((meval s) (,prev n)))))))))
 
 
 
