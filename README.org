@@ -3,7 +3,7 @@ This is a Racket implementation of a minimal subset of a call-by-name variant on
 
 *** A call-by-name interpreter in a call-by-value language
 
-Evaluation order in the object-system is made independent of the call-by-name semantics of the meta-system (Racket/Scheme), by (1) writing the interpreter in continuation-passing style, and (2) accumulating, manipulating, and reducing, a /defunctionalized/ continuation.
+Evaluation order in the object-system is made independent of the call-by-value semantics of the metalanguage (Racket), by (1) writing the interpreter in continuation-passing style, and (2) accumulating, manipulating, and reducing, a /defunctionalized/ continuation.
 
 *** Code combinators - modal logic S4
 Atop the untyped lambda calculus, there are first "code combinators". A quoting operator enables one to construct the code of a computation, which is itself a (code) value (akin to a Godel number). This corresponds via the Curry-Howard isomorphism to the box (necessity) operator of modal logic S4. A quote-combining operator enables one to construct the code of an application from the code of a function and the code of an applicant. This corresponds to application of the modal axiom K. Together, these operators enable construction of a hierarchy of Quines.
