@@ -1,0 +1,20 @@
+* M-λ := "Meta-λ": a sandbox for metaprogramming theory
+This is a Racket implementation of a minimal subset of a call-by-name variant on Scheme, with some additional features. It contains a pattern-matching interpreter which, at base, implements the pure untyped lambda calculus with call-by-name semantics, then builds atop it.
+
+** A call-by-name interpreter in a call-by-value language
+
+Evaluation order in the object-system is made independent of the call-by-name semantics of the meta-system (Racket/Scheme), by (1) writing the interpreter in continuation-passing style, and (2) accumulating, manipulating, and reducing, a /defunctionalized/ continuation.
+
+** Code combinators - modal logic S4
+Atop the untyped lambda calculus, there are first "code combinators". A quoting operator enables one to construct the code of a computation, which is itself a (code) value (akin to a Godel number). This corresponds via the Curry-Howard isomorphism to the box (necessity) operator of modal logic S4. A quote-combining operator enables one to construct the code of an application from the code of a function and the code of an applicant. This corresponds to application of the modal axiom K. 
+
+A self-interpreter - akin to Scheme's 'eval' - enables one to realize a computation thus encoded.
+
+Together, these features enable construction and use of a staged fixpoint combinator, the discovery of which is attributable to Kleene.
+
+** Continuations - global and delimited
+Atop the reflective (modal) extension, there are two pairs of operators that enable one to manipulate the current continuation. The 'callcc' operator is an idealized form of Scheme's call/cc, which enables one to capture and manipulate the global continuation at a point. The 'dropcc' operator is defined in terms of 'callcc', and enables one to abort the current (global) computation. The other pair of operators implement delimited continuations.
+
+
+
+
