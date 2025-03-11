@@ -1,4 +1,4 @@
-** M-λ := "Meta-λ": a sandbox for metaprogramming theory
+** M-λ := "Meta-λ"
 This is a Racket implementation of a minimal subset of a call-by-name variant on Scheme, with some additional features. It contains a pattern-matching interpreter which, at base, implements the pure untyped lambda calculus with call-by-name semantics, then builds atop it.
 
 *** A call-by-name interpreter in a call-by-value language
