@@ -137,13 +137,22 @@
     [(_ name prop) (when (not prop) (error "Test failed: " name))]))
 
 ;; Staged Quines
-;; Squine0 is not a Quine in M-λ, but its value (Squine1) is
+;; squine0 is not a Quine in M-λ, as it evaluates to the quotation of itself
+;; but the value of squine0, i.e. squine1, is a Quine in M-λ
 (define squine0 '((→ x (▷ x (□ x))) (□ (→ x (▷ x (□ x))))))
 (define squine1 '(□ ((→ x (▷ x (□ x))) (□ (→ x (▷ x (□ x)))))))
-(test 'squine-test-0 (not (equal? squine0 (meval squine0))))
-(test 'squine-test-1 (equal? squine1 (meval squine0)))
-(test 'squine-test-2 (equal? squine1 (meval (meval squine1))))
-(test 'squine-test-3 (equal? squine1 (meval `(ε ,squine1))))
+(define squine2 '(□ (□ ((→ x (▷ x (□ x))) (□ (→ x (▷ x (□ x))))))))
+;; ...
+(test 'squine-test-0a (not (equal? squine0 (meval squine0))))
+(test 'squine-test-0b (equal? squine1 (meval squine0)))
+(test 'squine-test-1a (equal? squine1 (meval squine1)))
+(test 'squine-test-1b (equal? squine1 (meval (meval squine1))))
+;; 1c exhibits a unique congruence, due to the relation of squine0 and squine1
+(test 'squine-test-1c (equal? squine1 (meval `(ε ,squine1))))
+(test 'squine-test-2a (equal? squine2 (meval squine2)))
+;; the congruence does not hold for n > 1
+(test 'squine-test-2b (not (equal? squine2 (meval `(ε ,squine2)))))
+(test 'squine-test-2c (equal? squine1 (meval `(ε ,squine2))))
 
 
 ;; Basic encoding of arithmetic in object system
