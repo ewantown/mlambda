@@ -158,7 +158,7 @@
 ;; Basic encoding of arithmetic in object system
 (define zero '(→ f (→ x x)))
 
-(define next '(→ n (→ f (→ x (f ((n f) x))))))
+(define succ '(→ n (→ f (→ x (f ((n f) x))))))
 
 (define prev '(→ n (→ f (→ x (((n (→ g (→ h (h (g f))))) (→ o x)) (→ i i))))))
 
@@ -167,7 +167,7 @@
 (define ifzero `((→ p (→ a (→ b ((p a) b)))) ,iszero))
 
 (define Y '(→ f ((→ g (f (g g))) (→ g (f (g g))))))
-(define plus `(→ f (→ n (→ m (((,ifzero n) m) ((f (,prev n)) (,next m)))))))
+(define plus `(→ f (→ n (→ m (((,ifzero n) m) ((f (,prev n)) (,succ m)))))))
 (define addo `(,Y ,plus))
 
 
@@ -176,7 +176,7 @@
   '(→ e ((→ x ((ε x) x)) (▷ (□ (→ t (→ y (t (▷ y (□ y)))))) e))))
 
 (define splus ;; □(N -> (N -> N)) -> (N -> (N -> N))
-  `(→ e (→ n (→ m (((,ifzero n) m) (((ε e) (,prev n)) (,next m)))))))
+  `(→ e (→ n (→ m (((,ifzero n) m) (((ε e) (,prev n)) (,succ m)))))))
 ;; Notice: applying the rule requires interpreting an expression for the rule
 
 (define saddo ;; N -> (N -> N)
@@ -185,7 +185,7 @@
 
 ;; Some meta-linguistic utilities
 (define numeral
-  (λ (n) (if (< 0 n) `(,next ,(numeral (sub1 n))) zero)))
+  (λ (n) (if (< 0 n) `(,succ ,(numeral (sub1 n))) zero)))
 
 (define number
   (λ (e)
